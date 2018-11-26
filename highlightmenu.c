@@ -4,10 +4,13 @@
 #include <string.h>
 #include <windows.h>
 
+#include "dlinkedlist.h"
+#include "data_handlers.h"
+
 #include "program.h"
 #include "key.h"
-#include "dlinkedlist.h"
 #include "highlightmenu.h"
+#include "menu_handlers.h"
 
 
 ///* ======================= Private APIs ========================= */
@@ -201,7 +204,7 @@ void HLM_SearchArgsSet(HLM_t * self, void * args)
 }
 
 /*  sets callback function for linked list search   */
-void HLM_SearchKeyCallbackSet(HLM_t * self, uNodeSearchKey callback)
+void HLM_SearchKeyCallbackSet(HLM_t * self, uDataSearchKey callback)
 {
     self->search_key = callback;
 }
@@ -278,7 +281,7 @@ void HLM_GetInput(HLM_t * self)
     switch(self->current_window)
     {
     case WIN_MAIN:
-        if ( HLM_MainWindowInput(self) == EXIT_PROGRAM )
+        if ( HND_MainWindowInput(self) == EXIT_PROGRAM )
         {
             PROG_StateSet(self->program, STATE_EXIT);
             HLM_WindowSet(self, WIN_EXIT);
@@ -298,7 +301,7 @@ void HLM_GetInput(HLM_t * self)
         switch(current_menu->inp_callback(self))
         {
 
-        case RETRN_TO_MENU:
+        case STAY_IN_MENU:
             PROG_StateSet(self->program, STATE_DISPLAY_UPDATE);
             break;
 
@@ -322,18 +325,7 @@ void HLM_GetInput(HLM_t * self)
 /*  destroy HLM instance    */
 void HLM_TearDown(HLM_t * self)
 {
-    DLL_Node_t * current_node = self->employee_data->head;
-    Employee_t * data = NULL;
-
-    while(current_node)
-    {
-        data = (Employee_t *)current_node->data;
-        free(data->name);
-        free(data);
-        current_node = current_node->next_node;
-        if(current_node) free(current_node->prev_node);
-
-    }   /*  end while   */
+    DLL_ListTearDown(self->employee_data);
 }
 
 /*  exit program    */

@@ -115,17 +115,18 @@ typedef struct
     Program_t * program;
 
     DLinkedList_t * employee_data;
-    uNodeSearchKey search_key;
+    uDataSearchKey search_key;
     void * search_args;
 
 } HLM_t;
 
 /* =================== Constants =========================== */
 
-
-#define RETRN_TO_MENU           1
+#define STAY_IN_MENU            1
 #define RETRUN_TO_MAIN_MENU     2
 #define EXIT_PROGRAM            -1
+#define END_LOOP                0
+#define CONTINUE_LOOP           1
 
 #define HEADER_FG_COLOR   COLOR_RED_BR
 #define HEADER_BG_COLOR   COLOR_BLACK
@@ -194,7 +195,7 @@ Key_t * HLM_KeyGet(HLM_t * self);
 void HLM_KeySet(HLM_t * self, Key_t * key);
 
 /*  sets callback function for linked list search   */
-void HLM_SearchKeyCallbackSet(HLM_t * self, uNodeSearchKey callback);
+void HLM_SearchKeyCallbackSet(HLM_t * self, uDataSearchKey callback);
 
 /*  sets search args for linked list search */
 void HLM_SearchArgsSet(HLM_t * self, void * args);

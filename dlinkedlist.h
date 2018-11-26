@@ -3,13 +3,6 @@
 
 
 /* ---------------------- Custom types ------------------------ */
-/* ===== Node Data ==== */
-typedef struct
-{
-    char * name;
-    float salary;
-    unsigned int id;
-} Employee_t;
 
 /* ===== Node Structure ==== */
 struct node
@@ -22,12 +15,12 @@ struct node
 typedef struct node DLL_Node_t;
 
 /* ===== Node handlers ==== */
-typedef unsigned int (*uNodePrintHandle)(DLL_Node_t *);
-typedef unsigned int (*uDataCopyHandle)(DLL_Node_t *, void *);
-typedef unsigned int (*uNodeSwapHandle)(DLL_Node_t *, DLL_Node_t *);
-typedef unsigned int (*uNodeSearchKey)(DLL_Node_t *, void *);
-typedef unsigned int (*uNodeCompareKey)(DLL_Node_t *, DLL_Node_t *);
-typedef unsigned int (*uNodeDestoryHandle)(DLL_Node_t *);
+typedef unsigned int (*uDataPrintHandle)(void * data);
+typedef unsigned int (*uDataCopyHandle)(void * src, void * dst);
+typedef unsigned int (*uDataSwapHandle)(void * ldata, void * rdata);
+typedef unsigned int (*uDataSearchKey)(void * data, void * key);
+typedef int (*uDataCompareKey)(void * ldata, void * rdata);
+typedef unsigned int (*uDataDestoryHandle)(void * data);
 
 /* ===== Linked List ==== */
 typedef struct
@@ -55,28 +48,28 @@ void DLL_DeleteNode(DLinkedList_t * self, unsigned int index);
 void DLL_InsertNode(DLinkedList_t * self, DLL_Node_t * node, unsigned int index);
 
 /*  search for a node in the list   */
-DLL_Node_t * DLL_Search(DLinkedList_t * self, uNodeSearchKey key, void * serach_args);
+DLL_Node_t * DLL_Search(DLinkedList_t * self, uDataSearchKey key, void * serach_args);
 
 /*  displays a given node   */
-void DLL_NodePrint(DLL_Node_t * node, uNodePrintHandle display_func);
+void DLL_NodePrint(DLL_Node_t * node, uDataPrintHandle display_func);
 
 /*  print linked list   */
-void DLL_ListPrint(DLinkedList_t * self, uNodePrintHandle display_func);
+void DLL_ListPrint(DLinkedList_t * self, uDataPrintHandle display_func);
 
-/** @TODO*/
-/*  copy node data from a source node to a given destination container */
-void DLL_NodeDataCopy(DLL_Node_t * src_node, void * dst_cont);
+/*  copy a node into a new node */
+void DLL_NodeCopy(DLL_Node_t * src_node, DLL_Node_t * dst_node, uDataCopyHandle copy_handle);
 
-/** @TODO*/
-/** swap 2 nodes */
-void DLL_SwapNodes(DLL_Node_t * rnode, DLL_Node_t *lnode, uNodeSwapHandle swap_handle);
+/* swap n2 nodes data  */
+void DLL_SwapNodesData(DLL_Node_t * lnode, DLL_Node_t * rnode, uDataSwapHandle data_swap_handle);
 
-/** @TODO*/
+/* swap 2 nodes */
+void DLL_SwapAdjacentNodes(DLinkedList_t * self, DLL_Node_t * rnode, DLL_Node_t *lnode);
+
 /*  compare 2 nodes */
-int DLL_NodeCompare(DLL_Node_t *rnode, DLL_Node_t * lnode, uNodeCompareKey compare_key);
+int DLL_NodeCompare(DLL_Node_t *rnode, DLL_Node_t * lnode, uDataCompareKey compare_key);
 
 /*  destroys a node */
-void DLL_NodeTearDown(DLL_Node_t * node);
+void DLL_NodeTearDown(DLL_Node_t * node, uDataDestoryHandle destroy_handle);
 
 /*  destroys a linked list   */
 void DLL_ListTearDown(DLinkedList_t * self);

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "dlinkedlist.h"
+#include "data_handlers.h"
 
 
 /*  initialize LinkedList   */
@@ -66,14 +67,14 @@ void DLL_DeleteNode(DLinkedList_t * self, unsigned int index)
     {
         if (self->list_size == 1)
         {
-            DLL_NodeTearDown(self->head);
+            DLL_NodeTearDown(self->head, HND_DestroyData);
             self->head = NULL;
             self->tail = NULL;
         }
         else
         {
             self->head = self->head->next_node;
-            DLL_NodeTearDown(self->head->prev_node);
+            DLL_NodeTearDown(self->head->prev_node, HND_DestroyData);
             self->head->prev_node = NULL;
         }   /*  end if  */
     }
@@ -82,7 +83,7 @@ void DLL_DeleteNode(DLinkedList_t * self, unsigned int index)
         if (index == (self->list_size - 1))
         {
             self->tail = self->tail->prev_node;
-            DLL_NodeTearDown(self->tail->next_node);
+            DLL_NodeTearDown(self->tail->next_node, HND_DestroyData);
             self->tail->next_node = NULL;
         }
         else
@@ -102,7 +103,7 @@ void DLL_DeleteNode(DLinkedList_t * self, unsigned int index)
             current_node->next_node->prev_node = current_node->prev_node;
 
             /*  delete current node */
-            DLL_NodeTearDown(current_node);
+            DLL_NodeTearDown(current_node, HND_DestroyData);
 
         }   /*  end if  */
 
@@ -160,13 +161,13 @@ void DLL_InsertNode(DLinkedList_t * self, DLL_Node_t * node, unsigned int index)
 }
 
 /*  search for a node in the list   */
-DLL_Node_t * DLL_Search(DLinkedList_t * self, uNodeSearchKey key, void * search_args)
+DLL_Node_t * DLL_Search(DLinkedList_t * self, uDataSearchKey key, void * search_args)
 {
     DLL_Node_t * current_node = self->head;
 
     while (current_node)
     {
-        if (key(current_node, search_args))
+        if (key(current_node->data, search_args))
         {
             return current_node;
         }   /*  end if  */
@@ -178,16 +179,16 @@ DLL_Node_t * DLL_Search(DLinkedList_t * self, uNodeSearchKey key, void * search_
 }
 
 /*  displays a given node   */
-void DLL_NodePrint(DLL_Node_t * node, uNodePrintHandle display_func)
+void DLL_NodePrint(DLL_Node_t * node, uDataPrintHandle display_func)
 {
     if(node)
     {
-        display_func(node);
+        display_func(node->data);
     }   /*  end if  */
 }
 
 /*  print linked list   */
-void DLL_ListPrint(DLinkedList_t * self, uNodePrintHandle display_func)
+void DLL_ListPrint(DLinkedList_t * self, uDataPrintHandle display_func)
 {
     DLL_Node_t * current_node = self->head;
     while (current_node)
@@ -197,37 +198,82 @@ void DLL_ListPrint(DLinkedList_t * self, uNodePrintHandle display_func)
     }   /*  end while   */
 }
 
-/** @TODO*/
-/*  copy node data from a source node to a given destination container */
-void DLL_NodeDataCopy(DLL_Node_t * src_node, void * dst_cont, uDataCopyHandle data_copy_handle)
+/*  copy a node into a new node */
+void DLL_NodeCopy(DLL_Node_t * src_node, DLL_Node_t * dst_node, uDataCopyHandle data_copy_handle)
 {
-    if(dst_cont)
+    if(dst_node)
     {
-        data_copy_handle(src_node, dst_cont);
+        dst_node->next_node = src_node->next_node;
+        dst_node->prev_node = src_node->prev_node;
+        data_copy_handle(src_node->data, dst_node->data);
     }   /*  end if  */
 }
 
-/** @TODO*/
-/** swap 2 nodes */
-void DLL_SwapNodes(DLL_Node_t * rnode, DLL_Node_t *lnode, uNodeSwapHandle swap_handle)
+/* swap 2 nodes data  */
+void DLL_SwapNodesData(DLL_Node_t * lnode, DLL_Node_t * rnode, uDataSwapHandle data_swap_handle)
 {
-    swap_handle(rnode, lnode);
+    data_swap_handle(lnode->data, rnode->data);
 }
 
-/** @TODO*/
-/*  compare 2 nodes */
-int DLL_NodeCompare(DLL_Node_t *rnode, DLL_Node_t * lnode, uNodeCompareKey compare_key)
+/* swap 2 nodes */
+void DLL_SwapAdjacentNodes(DLinkedList_t * self, DLL_Node_t * lnode, DLL_Node_t * rnode)
 {
-    return compare_key(rnode, lnode);
+    /*  check if rnode and lnode are the same node or not adjacent  */
+    if( (rnode == lnode) || ((rnode->next_node != lnode) && (lnode->prev_node != rnode)) ) return;
+
+    if(self->head == lnode)
+    {
+        if(self->tail == rnode)
+        {
+            /*  fix linked list tail pointer    */
+            self->tail = lnode;
+        }
+        else
+        {
+            /*  swap relations with surrounding nodes  */
+            (rnode->next_node)->prev_node = lnode;
+        }   /*  end if  */
+
+        /*  fix linked list head pointer    */
+        self->head = rnode;
+    }
+    else if(self->tail == rnode)
+    {
+        /*  swap relations with surrounding nodes  */
+        (lnode->prev_node)->next_node = rnode;
+
+        /*  fix linked list tail pointer    */
+        self->tail = lnode;
+    }
+    else
+    {
+        /*  swap relations with surrounding nodes  */
+        (lnode->prev_node)->next_node = rnode;
+        (rnode->next_node)->prev_node = lnode;
+
+    }   /*  end if  */
+
+    /*  swap relations between rnode and lnode  */
+    rnode->prev_node = lnode->prev_node;
+    lnode->next_node = rnode->next_node;
+    lnode->prev_node = rnode;
+    rnode->next_node = lnode;
+}
+
+/*  compare 2 nodes */
+int DLL_NodeCompare(DLL_Node_t *rnode, DLL_Node_t * lnode, uDataCompareKey compare_key)
+{
+    return compare_key(rnode->data, lnode->data);
 }
 
 /*  destroys a node */
-void DLL_NodeTearDown(DLL_Node_t * node)
+void DLL_NodeTearDown(DLL_Node_t * node, uDataDestoryHandle destroy_handle)
 {
-    node->next_node = NULL;
-    node->prev_node = NULL;
-    node->data = NULL;
-    free(node);
+    if(node)
+    {
+        destroy_handle(node->data);
+        free(node);
+    }   /*  end if  */
 }
 
 /*  destroys a linked list   */
